@@ -27,9 +27,15 @@ app.get("/", async (req, res) => {
 // ユーザー追加：フォームからの POST を受け取って DB に保存するぞ
 app.post("/users", async (req, res) => {
   const name = req.body.name;
+  const age = req.body.age;
   if (name) {
-    const newUser = await prisma.user.create({ data: { name } });
-    console.log("ユーザーを追加したぞ:", newUser);
+    await prisma.user.create({
+      data: {
+        name,
+        // フォームからの数字をプログラムで扱える数値（Int）に変換して保存するぞ
+        age: age ? parseInt(age) : null,
+      },
+    });
   }
   res.redirect("/");
 });
