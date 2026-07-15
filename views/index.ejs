@@ -1,20 +1,90 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head><meta charset="UTF-8"><title>ユーザー一覧</title></head>
-<body>
-  <h1>ユーザー一覧</h1>
-  <ul>
-    <% users.forEach(user => { %>
-      <!-- 年齢があれば表示し、なければ「未設定」と出すぞ -->
-      <li><%= user.name %> (<%= user.age ? user.age + '歳' : '年齢未設定' %>)</li>
-    <% }) %>
-  </ul>
-  <h2>ユーザー追加</h2>
-  <form action="/users" method="post">
-    <input type="text" name="name" placeholder="名前" required>
-    <!-- 年齢の入力欄を追加じゃ -->
-    <input type="number" name="age" placeholder="年齢">
-    <button type="submit">追加</button>
-  </form>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>タスク管理アプリ</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <script src="/js/script.js" defer></script>
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <aside class="sidebar">
+        <div class="sidebar-brand">タスク管理</div>
+
+        <nav class="sidebar-menu">
+          <button class="menu-item active" id="menu-home">
+            <span class="icon">🏠</span> ホーム
+          </button>
+
+          <div class="menu-section-title">タスクリスト（優先順位）</div>
+          <button class="menu-item priority-high" id="menu-high">
+            <span class="dot"></span> 最重要（赤）
+          </button>
+          <button class="menu-item priority-medium" id="menu-medium">
+            <span class="dot"></span> 重要（青）
+          </button>
+          <button class="menu-item priority-low" id="menu-low">
+            <span class="dot"></span> 普通（黄緑）
+          </button>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="content-header">
+          <h1 id="current-view-title">ホーム（期限の近いタスク）</h1>
+        </header>
+
+        <div class="task-container">
+          <ul id="task-list">
+            <!-- 👇 【修正箇所①】データベースから届いたタスク（todos）をEJSのループで表示するぞ -->
+            <% if (todos && todos.length > 0) { %>
+              <% todos.forEach(todo => { %>
+                <li class="task-item <%= todo.priority %>">
+                  <div class="task-info">
+                    <span class="task-name"><%= todo.title %></span>
+                    <% if (todo.deadline) { %>
+                      <span class="task-deadline">⏳ 期限: <%= todo.deadline %></span>
+                    <% } %>
+                  </div>
+                  <button class="delete-button">削除</button>
+                </li>
+              <% }); %>
+            <% } else { %>
+              <li style="list-style: none; color: #888; text-align: center; padding: 20px;">
+                タスクはまだありません。右下の「＋」から追加してね！
+              </li>
+            <% } %>
+          </ul>
+        </div>
+
+        <button id="floating-add-button" class="floating-btn">＋</button>
+
+        <div id="add-task-modal" class="modal hidden">
+          <!-- 👇 【修正箇所②】入力エリア全体を <form> タグで包み、name属性を追加したぞ -->
+          <form class="modal-content" action="/todos" method="POST" id="todo-form">
+            <h2>新しいタスクを追加</h2>
+            <!-- サーバーで受け取るために name="title" を追加 -->
+            <input type="text" id="task-input" name="title" placeholder="タスクを入力..." required />
+            
+            <!-- サーバーで受け取るために name="deadline" を追加 -->
+            <input type="date" id="task-date" name="deadline" />
+
+            <!-- サーバーで受け取るために name="priority" を追加 -->
+            <select id="task-priority" name="priority">
+              <option value="high">最重要（赤）</option>
+              <option value="medium" selected>重要（青）</option>
+              <option value="low">普通（黄緑）</option>
+            </select>
+
+            <div class="modal-actions">
+              <!-- キャンセルは送信されないように type="button" に変更 -->
+              <button type="button" id="modal-cancel-btn">キャンセル</button>
+              <!-- 追加ボタンを押すと、上の /todos 窓口にデータが送信される -->
+              <button type="submit" id="modal-submit-btn">追加</button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </body>
 </html>

@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -15,5 +13,14 @@ datasource db {
 model User {
   id   Int    @id @default(autoincrement())
   name String
-  age  Int?   // 「?」をつけることで、年齢が未入力でもエラーにならんようにするのじゃ
+  age  Int?   
+}
+
+// ★ 【解答】新しくタスク保存用のテーブルを追加します
+model Todo {
+  id        Int      @id @default(autoincrement()) // 自動で増えるID（1, 2, 3...）
+  title     String                                 // タスクの名前
+  deadline  String?                                // 期限（日付）。未入力でもOKなように「?」をつける
+  priority  String                                 // 優先順位（high, medium, low）
+  createdAt DateTime @default(now())               // 作成日時（自動で現在の時刻が入る）
 }

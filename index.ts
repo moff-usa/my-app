@@ -17,26 +17,37 @@ app.set("view engine", "ejs");
 app.set("views", "./views");
 // フォームから送られてきたデータを受け取るための設定じゃ
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 // メイン画面：ユーザー一覧を表示するぞ
 app.get("/", async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.render("index", { users });
+  // 1. Userの代わりに、新しく作った Todo テーブルからデータを全部取ってくるのじゃ
+  const todos = await prisma.todo.findMany({
+    orderBy: {
+      createdAt: "desc", // 新しいタスクが上にくるように並び替えるぞ
+    },
+  });
+
+  // 2. 画面（index.ejs）に todos という名前でデータを渡してあげるのじゃ
+  res.render("index", { todos });
 });
 
-// ユーザー追加：フォームからの POST を受け取って DB に保存するぞ
-app.post("/users", async (req, res) => {
-  const name = req.body.name;
-  const age = req.body.age;
-  if (name) {
-    await prisma.user.create({
+app.post("/todos", async (req, res) => {
+  const title = req.body.title;
+  const deadline = req.body.deadline;
+  const priority = req.body.priority;
+
+  if (title) {
+    // データベースの Todo テーブルに新しく保存（作成）するぞ
+    await prisma.todo.create({
       data: {
-        name,
-        // フォームからの数字をプログラムで扱える数値（Int）に変換して保存するぞ
-        age: age ? parseInt(age) : null,
+        title: title,
+        deadline: deadline || null, // 未入力なら空っぽ（null）にする
+        priority: priority || "medium", // 未入力なら「普通」にする
       },
     });
   }
+  // 保存が終わったら、メイン画面（"/"）に自動で戻す（リフレッシュする）のじゃ
   res.redirect("/");
 });
 
